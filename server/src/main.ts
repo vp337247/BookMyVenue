@@ -1,9 +1,13 @@
 import { NestFactory } from '@nestjs/core';
+import * as cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Register cookie parser middleware
+  app.use(cookieParser());
 
   // Enable CORS for frontend client integration
   app.enableCors({
@@ -17,7 +21,7 @@ async function bootstrap() {
 
   // Retrieve configuration service to dynamically read application port
   const configService = app.get(ConfigService);
-  const port = configService.get<number>('app.port') || 4000;
+  const port = configService.get<number>('app.port');
 
   await app.listen(port);
 }

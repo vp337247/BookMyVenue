@@ -22,10 +22,30 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type BaseResult {
+  success: Boolean!
+  message: String!
+  statusCode: Int!
+}
+
 type Query {
   """Retrieve a list of all venues with optional filters"""
   venues(search: String, type: String): [Venue!]!
 
   """Retrieve a single venue by its UUID"""
   venue(id: ID!): Venue
+}
+
+type Mutation {
+  """Sign up a new customer account"""
+  signUp(input: SignupInput!): BaseResult!
+}
+
+input SignupInput {
+  firstName: String!
+  lastName: String
+  email: String!
+  phone: String!
+  countryCode: String
+  password: String!
 }
