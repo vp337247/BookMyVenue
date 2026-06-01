@@ -8,6 +8,8 @@ export async function up(knex: Knex): Promise<void> {
     table.string('email', 255).unique().notNullable();
     table.string('first_name', 255).notNullable();
     table.string('last_name', 255).nullable();
+    table.string('phone_number', 50).unique().notNullable();
+    table.string('country_code', 10).notNullable();
     table.string('role_code').notNullable();
     table.string('password_reset_token').unique().nullable();
     table.timestamp('password_reset_token_exp_at').nullable();
