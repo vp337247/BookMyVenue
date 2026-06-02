@@ -8,6 +8,7 @@ export interface UserAccountDb {
   role_code: string;
   phone_number: string | null;
   country_code: string | null;
+  is_verified: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -47,5 +48,37 @@ export class UserAccountRepository {
 
   async getAuthDetails(userAccountId: string): Promise<{ password_salt: string; password_hash: string } | undefined> {
     return this.db('user_auth').where({ user_account_id: userAccountId }).first();
+  }
+
+  async createOtp(email: string, code: string, expiresAt: Date): Promise<void> {
+    await this.db('user_otp_codes').insert({
+      email,
+      otp_code: code,
+      expires_at: expiresAt,
+      attempts: 0,
+      is_consumed: false,
+    });
+  }
+
+  async findOtpByEmail(email: string): Promise<any> {
+    return this.db('user_otp_codes')
+      .where({ email })
+      .orderBy('created_at', 'desc')
+      .first();
+  }
+
+  async incrementOtpAttempts(id: string): Promise<void> {
+    await this.db('user_otp_codes')
+      .where({ id })
+      .increment('attempts', 1)
+      .update({ last_attempt_at: new Date() });
+  }
+
+  async consumeOtp(id: string): Promise<void> {
+    await this.db('user_otp_codes').where({ id }).update({ is_consumed: true });
+  }
+
+  async verifyUserEmail(email: string): Promise<void> {
+    await this.db('user_account').where({ email }).update({ is_verified: true });
   }
 }

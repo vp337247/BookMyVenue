@@ -1,38 +1,39 @@
 import { Resolver, Mutation, Args, Context } from '@nestjs/graphql';
 import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
 import { DatabaseService } from '../../infrastructure/database/database.service';
 import { SignupInput } from './dto/signup.input';
 import { LoginInput } from './dto/login.input';
+import { VerifyEmailInput } from './dto/verify-email.input';
 import { BaseResult } from './types/shared.type';
 import { SignupSchema } from './schema/signup.schema';
 import { LoginSchema } from './schema/login.schema';
-import { ValidationException, formatZodErrors } from '../../common/utils/validation.util';
+import { VerifyEmailSchema } from './schema/verify-email.schema';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { UserAccountRepository } from './repositories/user-account.repository';
 import { SignupUseCase } from './use-cases/signup.use-case';
 import { LoginUseCase } from './use-cases/login.use-case';
+import { VerifyEmailUseCase } from './use-cases/verify-email.use-case';
 import { mapToHttpException } from '../../common/utils/exception-mapper.util';
 import { ResponseService } from '../../common/services/response.service';
 import { StatusCode } from '../../common/enums/status-code.enum';
 import { AuthService } from './auth.service';
+import { EmailService } from '../../common/services/email.service';
 
 @Resolver()
 export class AuthResolver {
     constructor(
         private readonly dbService: DatabaseService,
         private readonly responseService: ResponseService,
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        private readonly emailService: EmailService,
+        private readonly configService: ConfigService
     ) { }
 
     @Mutation(() => BaseResult, { description: 'Sign up a new customer account' })
-    async signUp(@Args('input') input: SignupInput): Promise<BaseResult> {
-        const validation = SignupSchema.safeParse(input);
-        if (!validation.success) {
-            throw new ValidationException(
-                'Input validation failed',
-                formatZodErrors(validation.error.issues)
-            );
-        }
-
+    async signUp(
+        @Args('input', new ZodValidationPipe(SignupSchema)) input: SignupInput
+    ): Promise<BaseResult> {
         try {
             await this.dbService.runUnitOfWork({
                 useTransaction: true,
@@ -40,7 +41,7 @@ export class AuthResolver {
                     userAccountRepo: new UserAccountRepository(db),
                 }),
                 callback: async ({ userAccountRepo }) => {
-                    const useCase = new SignupUseCase({ userAccountRepo });
+                    const useCase = new SignupUseCase({ userAccountRepo, emailService: this.emailService });
                     return await useCase.execute({ data: input });
                 },
             });
@@ -53,17 +54,9 @@ export class AuthResolver {
 
     @Mutation(() => BaseResult, { description: 'Log in to a customer account' })
     async login(
-        @Args('input') input: LoginInput,
+        @Args('input', new ZodValidationPipe(LoginSchema)) input: LoginInput,
         @Context() context: { res: Response }
     ): Promise<BaseResult> {
-        const validation = LoginSchema.safeParse(input);
-        if (!validation.success) {
-            throw new ValidationException(
-                'Input validation failed',
-                formatZodErrors(validation.error.issues)
-            );
-        }
-
         try {
             await this.dbService.runUnitOfWork({
                 useTransaction: false,
@@ -77,6 +70,28 @@ export class AuthResolver {
             });
 
             return this.responseService.success('Logged in successfully.', StatusCode.SUCCESS);
+        } catch (error) {
+            throw mapToHttpException(error);
+        }
+    }
+
+    @Mutation(() => BaseResult, { description: 'Verify customer account email address using the received OTP' })
+    async verifyEmail(
+        @Args('input', new ZodValidationPipe(VerifyEmailSchema)) input: VerifyEmailInput
+    ): Promise<BaseResult> {
+        try {
+            await this.dbService.runUnitOfWork({
+                useTransaction: false,
+                buildDependencies: async ({ db }) => ({
+                    userAccountRepo: new UserAccountRepository(db),
+                }),
+                callback: async ({ userAccountRepo }) => {
+                    const useCase = new VerifyEmailUseCase({ userAccountRepo, configService: this.configService });
+                    return await useCase.execute({ data: input });
+                },
+            });
+
+            return this.responseService.success('Your email address has been verified successfully. You can now log in.', StatusCode.SUCCESS);
         } catch (error) {
             throw mapToHttpException(error);
         }
