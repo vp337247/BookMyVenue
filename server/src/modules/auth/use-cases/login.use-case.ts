@@ -22,6 +22,10 @@ export class LoginUseCase {
       throw new BaseError('Invalid email or password.', 401);
     }
 
+    if (!user.is_verified) {
+      throw new BaseError('Please verify your email address before logging in.', 403);
+    }
+
     const auth = await this.userAccountRepo.getAuthDetails(user.id);
     if (!auth) {
       throw new BaseError('Invalid email or password.', 401);

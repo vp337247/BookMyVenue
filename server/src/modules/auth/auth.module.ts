@@ -5,6 +5,7 @@ import { StringValue } from 'ms';
 import { AuthResolver } from './auth.resolver';
 import { ResponseService } from '../../common/services/response.service';
 import { AuthService } from './auth.service';
+import { EmailService } from '../../common/services/email.service';
 
 @Global()
 @Module({
@@ -19,7 +20,7 @@ import { AuthService } from './auth.service';
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthResolver, ResponseService, AuthService],
-  exports: [AuthService, JwtModule],
+  providers: [AuthResolver, ResponseService, AuthService, EmailService],
+  exports: [AuthService, JwtModule, EmailService],
 })
 export class AuthModule { }

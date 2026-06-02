@@ -104,6 +104,7 @@ export class InitCommand extends CommandRunner {
             phone_number: phone,
             country_code: countryCode,
             role_code: adminRole.code,
+            is_verified: true,
           }).returning('*');
 
           await db('user_auth').insert({
