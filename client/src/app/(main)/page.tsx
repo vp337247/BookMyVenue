@@ -94,7 +94,7 @@ export default function HomePage() {
               background: 'transparent',
               border: 'none',
               borderBottom: '1px solid hsl(var(--card-border))',
-              color: '#fff',
+              color: 'hsl(var(--text-primary))',
               fontSize: '0.95rem',
               padding: '6px 0',
               outline: 'none'
@@ -126,7 +126,7 @@ export default function HomePage() {
               background: 'transparent',
               border: 'none',
               borderBottom: '1px solid hsl(var(--card-border))',
-              color: '#fff',
+              color: 'hsl(var(--text-primary))',
               fontSize: '0.95rem',
               padding: '6px 0',
               outline: 'none'
@@ -189,7 +189,7 @@ export default function HomePage() {
                   </span>
                 </div>
 
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '12px', color: '#fff' }}>{venue.name}</h3>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 700, marginBottom: '12px', color: 'hsl(var(--text-primary))' }}>{venue.name}</h3>
 
                 {/* Amenities List */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '24px' }}>

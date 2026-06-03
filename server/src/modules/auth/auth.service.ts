@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  /**
-   * Generates a signed JWT access token.
-   */
   async signToken(payload: { userId: string; email: string; role: string }): Promise<string> {
     return this.jwtService.signAsync({
       sub: payload.userId,
@@ -17,25 +18,21 @@ export class AuthService {
     });
   }
 
-  /**
-   * Writes the access token into an HTTP-only secure cookie.
-   */
   setAuthCookie(res: Response, token: string): void {
+    const isSecure = this.configService.get<string>('NODE_ENV') === 'production';
     res.cookie('access_token', token, {
-      httpOnly: true, // XSS protection (JavaScript cannot read this cookie)
-      secure: process.env.NODE_ENV === 'production', // Send only over HTTPS in production
-      sameSite: 'lax', // CSRF protection
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours (matches JWT expiration)
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60 * 1000,
     });
   }
 
-  /**
-   * Clears the authentication cookie on logout.
-   */
   clearAuthCookie(res: Response): void {
+    const isSecure = this.configService.get<string>('NODE_ENV') === 'production';
     res.clearCookie('access_token', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isSecure,
       sameSite: 'lax',
     });
   }

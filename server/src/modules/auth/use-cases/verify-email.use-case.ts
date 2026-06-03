@@ -2,6 +2,7 @@ import { UserAccountRepository, UserAccountDb } from '../repositories/user-accou
 import { VerifyEmailInput } from '../dto/verify-email.input';
 import { BaseError } from '../../../common/errors/base.error';
 import { ConfigService } from '@nestjs/config';
+import { OtpPurpose } from '../../../common/enums/otp-purpose.enum';
 
 export class VerifyEmailUseCase {
   private readonly userAccountRepo: UserAccountRepository;
@@ -24,7 +25,7 @@ export class VerifyEmailUseCase {
       throw new BaseError('This email address is already verified.', 400);
     }
 
-    const otp = await this.userAccountRepo.findOtpByEmail(email);
+    const otp = await this.userAccountRepo.findOtpByEmail(email, OtpPurpose.VERIFY_EMAIL);
     if (!otp || otp.is_consumed) {
       throw new BaseError('No verification code found or code has already been consumed.', 400);
     }

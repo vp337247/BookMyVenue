@@ -12,8 +12,6 @@ export async function up(knex: Knex): Promise<void> {
     table.string('country_code', 10).notNullable();
     table.string('role_code').notNullable();
     table.boolean('is_verified').notNullable().defaultTo(false);
-    table.string('password_reset_token').unique().nullable();
-    table.timestamp('password_reset_token_exp_at').nullable();
     table.timestamps(true, true);
 
     table.foreign('role_code').references('code').inTable('roles').onDelete('RESTRICT');
