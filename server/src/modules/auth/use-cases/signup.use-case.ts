@@ -5,6 +5,7 @@ import { UserRole } from '../../../common/enums/role.enum';
 import { BaseError } from '../../../common/errors/base.error';
 import { EmailService } from '../../../common/services/email.service';
 import { generateOtp } from '../../../common/utils/otp.util';
+import { OtpPurpose } from '../../../common/enums/otp-purpose.enum';
 
 export class SignupUseCase {
   private readonly userAccountRepo: UserAccountRepository;
@@ -16,7 +17,7 @@ export class SignupUseCase {
   }
 
   async execute(params: { data: SignupInput }): Promise<UserAccountDb> {
-    const { firstName, lastName, email, phone, countryCode, password } = params.data;
+    const { firstName, lastName, email, phone, countryCode, password, roleCode } = params.data;
 
     const existingUser = await this.userAccountRepo.findByEmail(email);
     if (existingUser) {
@@ -34,7 +35,7 @@ export class SignupUseCase {
       email,
       first_name: firstName,
       last_name: lastName || null,
-      role_code: UserRole.USER,
+      role_code: roleCode,
       phone_number: phone,
       country_code: countryCode || null,
     });
@@ -48,7 +49,7 @@ export class SignupUseCase {
     const otpCode = generateOtp(6);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    await this.userAccountRepo.createOtp(account.email, otpCode, expiresAt);
+    await this.userAccountRepo.createOtp(account.email, otpCode, expiresAt, OtpPurpose.VERIFY_EMAIL);
 
     await this.emailService.sendMail({
       to: account.email,

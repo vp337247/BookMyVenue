@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { UserRole } from '../../../common/enums/role.enum';
 
 export const SignupSchema = z.object({
   firstName: z.string().trim().min(3, 'First Name is too short.').max(100),
@@ -7,4 +8,7 @@ export const SignupSchema = z.object({
   phone: z.string().trim().min(5, 'Phone number is too short.').max(20, 'Phone number is too long.'),
   countryCode: z.string().trim().max(10, 'Country code is too long.'),
   password: z.string().min(8, 'Password must be at least 8 characters long.'),
+  roleCode: z.enum([UserRole.USER, UserRole.OWNER] as const, {
+    message: 'Invalid role selection.',
+  }),
 });

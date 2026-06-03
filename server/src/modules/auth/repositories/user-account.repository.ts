@@ -1,4 +1,5 @@
 import { Knex } from 'knex';
+import { OtpPurpose } from '../../../common/enums/otp-purpose.enum';
 
 export interface UserAccountDb {
   id: string;
@@ -9,6 +10,19 @@ export interface UserAccountDb {
   phone_number: string | null;
   country_code: string | null;
   is_verified: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UserOtpCodeDb {
+  id: string;
+  email: string;
+  otp_code: string;
+  purpose_code: OtpPurpose;
+  attempts: number;
+  is_consumed: boolean;
+  expires_at: string;
+  last_attempt_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -50,19 +64,20 @@ export class UserAccountRepository {
     return this.db('user_auth').where({ user_account_id: userAccountId }).first();
   }
 
-  async createOtp(email: string, code: string, expiresAt: Date): Promise<void> {
+  async createOtp(email: string, code: string, expiresAt: Date, purposeCode: OtpPurpose = OtpPurpose.VERIFY_EMAIL): Promise<void> {
     await this.db('user_otp_codes').insert({
       email,
       otp_code: code,
       expires_at: expiresAt,
       attempts: 0,
       is_consumed: false,
+      purpose_code: purposeCode,
     });
   }
 
-  async findOtpByEmail(email: string): Promise<any> {
+  async findOtpByEmail(email: string, purposeCode: OtpPurpose = OtpPurpose.VERIFY_EMAIL): Promise<UserOtpCodeDb | undefined> {
     return this.db('user_otp_codes')
-      .where({ email })
+      .where({ email, purpose_code: purposeCode })
       .orderBy('created_at', 'desc')
       .first();
   }
@@ -80,5 +95,14 @@ export class UserAccountRepository {
 
   async verifyUserEmail(email: string): Promise<void> {
     await this.db('user_account').where({ email }).update({ is_verified: true });
+  }
+
+  async updateAuth(userAccountId: string, data: {
+    password_salt: string;
+    password_hash: string;
+  }): Promise<void> {
+    await this.db('user_auth')
+      .where({ user_account_id: userAccountId })
+      .update(data);
   }
 }
