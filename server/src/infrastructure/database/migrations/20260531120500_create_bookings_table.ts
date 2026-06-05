@@ -10,7 +10,10 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('start_time').notNullable();
     table.timestamp('end_time').notNullable();
     table.double('total_price').notNullable();
-    table.string('status').notNullable().defaultTo('PENDING'); // PENDING, APPROVED, REJECTED, CANCELLED
+    table.enum('status', ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED'], {
+      useNative: true,
+      enumName: 'booking_status',
+    }).notNullable().defaultTo('PENDING');
     table.timestamps(true, true);
 
     table.index('venue_id');
@@ -20,4 +23,5 @@ export async function up(knex: Knex): Promise<void> {
 
 export async function down(knex: Knex): Promise<void> {
   await knex.schema.dropTableIfExists('bookings');
+  await knex.raw('DROP TYPE IF EXISTS booking_status;');
 }

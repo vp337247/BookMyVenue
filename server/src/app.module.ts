@@ -7,6 +7,8 @@ import { ConfigModule } from './infrastructure/config/config.module';
 import { DatabaseModule } from './infrastructure/database/database.module';
 import { VenuesModule } from './venues/venues.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { BookingsModule } from './modules/bookings/bookings.module';
+import { PaymentsModule } from './modules/payments/payments.module';
 import { GraphQlExceptionFilter } from './common/filters/graphql-exception.filter';
 
 @Module({
@@ -15,6 +17,8 @@ import { GraphQlExceptionFilter } from './common/filters/graphql-exception.filte
     DatabaseModule,
     VenuesModule,
     AuthModule,
+    BookingsModule,
+    PaymentsModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: true,

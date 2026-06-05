@@ -4,12 +4,13 @@ import { NestFactory } from '@nestjs/core';
 import * as path from 'path';
 import { appConfig } from './app.config';
 import { databaseConfig } from './database.config';
+import { stripeConfig } from './stripe.config';
 
 @Module({
   imports: [
     NestConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, databaseConfig],
+      load: [appConfig, databaseConfig, stripeConfig],
       envFilePath: path.resolve(__dirname, '../../../.env'),
     }),
   ],
